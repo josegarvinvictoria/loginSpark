@@ -4,46 +4,50 @@ import static spark.Spark.get;
 import static spark.Spark.post;
 import static spark.SparkBase.*;
 
-import javax.swing.text.html.HTML;
+import java.util.HashMap;
+import java.util.Map;
 
+import spark.ModelAndView;
+import spark.template.mustache.MustacheTemplateEngine;
 
 /**
- * Hello world!
+ * Spark example by Jose Garvin Victoria
  *
  */
-public class App 
-{
+public class App {
 	static String usuariCorrecte = "cendrassos";
 	static String passCorrecte = "1234";
-	
-    public static void main( String[] args )
-    {
-    	staticFileLocation("/fitxersHTML");
-    	
-    	get("/", (peticio, resposta) -> {
-    		resposta.redirect("/index.html");
-    		
-    		return resposta;
-    	});
-    	
-    	
-    	
-    	
-    	post("/validar", (peticio, resposta) -> {
-    		String usuariEspecificat = peticio.queryParams("usuari");
-    		String clauEspecificada = peticio.queryParams("clau");
-    		StringBuilder html = new StringBuilder();
-    		
-    		if(usuariEspecificat.equals(usuariCorrecte) &&
-    				clauEspecificada.equals(passCorrecte)){
-    			html.append("<h2>Benvingut usuari " + usuariCorrecte + "<h2>" );
-    			return html.toString();
-    		}else{
-    			resposta.body("Helloooooo!");
-    			resposta.redirect("/auth_fail.html");
-    			return resposta;
-    		}
-    		
-    	});
-    }
+	static Map<String, String> map = null;
+
+	public static void main(String[] args) {
+		staticFileLocation("/templates");
+
+		get("/", (peticio, resposta) -> {
+			resposta.redirect("/index.ftl");
+
+			return resposta;
+		});
+
+		post("/validar",
+				(peticio, resposta) -> {
+					String usuariEspecificat = peticio.queryParams("usuari");
+					String clauEspecificada = peticio.queryParams("clau");
+
+					if (usuariEspecificat.equals(usuariCorrecte)
+							&& clauEspecificada.equals(passCorrecte)) {
+						map = new HashMap<String, String>();
+						map.put("usuari", usuariEspecificat);
+
+						resposta.redirect("/auth_ok.ftl");
+						return resposta;
+					} else {
+						resposta.redirect("/auth_fail.ftl");
+						return resposta;
+					}
+
+				});
+
+		get("/auth_ok.ftl", (rq, rs) -> new ModelAndView(map, "/auth_ok.ftl"),
+				new MustacheTemplateEngine());
+	}
 }
